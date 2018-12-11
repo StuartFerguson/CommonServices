@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="EventStoreContext\**" />
+    <EmbeddedResource Remove="EventStoreContext\**" />
+    <None Remove="EventStoreContext\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EventStore.ClientAPI.NetCore" Version="4.1.0.23" />
+    <PackageReference Include="Shared" Version="1.0.6.13" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SubscriptionService.Database\SubscriptionService.Database.csproj" />
+    <ProjectReference Include="..\SubscriptionService.DataTransferObjects\SubscriptionService.DataTransferObjects.csproj" />
+  </ItemGroup>
+
+</Project>
