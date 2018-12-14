@@ -44,16 +44,4 @@ namespace SubscriptionService.DataTransferObjects
         /// </value>
         public Int32? BufferSize { get; set; }
     }
-
-    //public class CreateSubscriptionStreamRequest
-    //{
-    //    public String StreamName { get; set; }
-    //    public SubscriptionType SubscriptionType { get; set; }
-    //}
-
-    //public enum SubscriptionType
-    //{
-    //    Persistent = 0,
-    //    CatchUp
-    //}
 }

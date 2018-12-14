@@ -93,15 +93,15 @@ namespace SubscriptionService.UnitTests
             
             ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
 
-            Guid subscriptionId = Guid.Parse("317E17B5-8E98-48A4-BFD3-9C0EE2919EAC");
-            await repository.ResetSubscriptionStreamPosition(subscriptionId, CancellationToken.None);
+            Guid subscriptionGroupId = SubscriptionServiceConfigurationTestData.SubscriptionGroupId;
+            await repository.ResetSubscriptionStreamPosition(subscriptionGroupId, CancellationToken.None);
 
             var verifyContext = GetContext(databaseName);
             verifyContext.SubscriptionGroups.First().StreamPosition.ShouldBeNull();
         }
 
         [Fact]
-        public void ConfigurationRepository_ResetSubscriptionStreamPosition_InvalidSubscriptionId_ErrorThrown()
+        public void ConfigurationRepository_ResetSubscriptionStreamPosition_InvalidSubscriptionGroupId_ErrorThrown()
         {
             String databaseName = Guid.NewGuid().ToString("N");
             var context = GetContext(databaseName);
@@ -129,8 +129,8 @@ namespace SubscriptionService.UnitTests
 
             Should.Throw<NotFoundException>(async () =>
             {
-                Guid subscriptionId = Guid.Parse("317E17B5-8E98-48A4-BFD3-9C0EE2919EAC");
-                await repository.ResetSubscriptionStreamPosition(subscriptionId, CancellationToken.None);
+                Guid subscriptionGroupId = SubscriptionServiceConfigurationTestData.SubscriptionGroupId;
+                await repository.ResetSubscriptionStreamPosition(subscriptionGroupId, CancellationToken.None);
             });            
         }
 
@@ -149,14 +149,14 @@ namespace SubscriptionService.UnitTests
             
             ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
 
-            Guid subscriptionId = Guid.Parse("317E17B5-8E98-48A4-BFD3-9C0EE2919EAC");
-            var endPoint = await repository.GetEndPointForSubscriptionGroup(subscriptionId, CancellationToken.None);
+            Guid subscriptionGroupId = SubscriptionServiceConfigurationTestData.SubscriptionGroupId;
+            var endPoint = await repository.GetEndPointForSubscriptionGroup(subscriptionGroupId, CancellationToken.None);
 
             endPoint.ShouldNotBeNull();
         }
 
         [Fact]
-        public async Task ConfigurationRepository_GetEndPointForSubscriptionGroup_InvalidSubscriptionId_ErrorThrown()
+        public async Task ConfigurationRepository_GetEndPointForSubscriptionGroup_InvalidSubscriptionGroupId_ErrorThrown()
         {
             String databaseName = Guid.NewGuid().ToString("N");
             var context = GetContext(databaseName);
@@ -182,10 +182,10 @@ namespace SubscriptionService.UnitTests
             
             ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
 
-            Guid subscriptionId = Guid.Parse("317E17B5-8E98-48A4-BFD3-9C0EE2919EAC");
+            Guid subscriptionGroupId = SubscriptionServiceConfigurationTestData.SubscriptionGroupId;
             Should.Throw<NotFoundException>(async () =>
             {
-                await repository.GetEndPointForSubscriptionGroup(subscriptionId, CancellationToken.None);
+                await repository.GetEndPointForSubscriptionGroup(subscriptionGroupId, CancellationToken.None);
             });
         }
 
@@ -204,8 +204,8 @@ namespace SubscriptionService.UnitTests
             
             ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
 
-            Guid subscriptionId = Guid.Parse("D1AA40C2-040B-4AF6-9864-8EC0A2E20BCF");
-            var endPoint = await repository.GetEndPointForCatchUpSubscription(subscriptionId, CancellationToken.None);
+            Guid catchUpSubscriptionId = SubscriptionServiceConfigurationTestData.CatchUpSubscriptionId;
+            var endPoint = await repository.GetEndPointForCatchUpSubscription(catchUpSubscriptionId, CancellationToken.None);
 
             endPoint.ShouldNotBeNull();
         }
@@ -240,8 +240,8 @@ namespace SubscriptionService.UnitTests
 
             Should.Throw<NotFoundException>(async () =>
             {
-                Guid subscriptionId = Guid.Parse("D1AA40C2-040B-4AF6-9864-8EC0A2E20BCF");
-                await repository.GetEndPointForCatchUpSubscription(subscriptionId, CancellationToken.None);
+                Guid catchUpSubscriptionId = SubscriptionServiceConfigurationTestData.CatchUpSubscriptionId;
+                await repository.GetEndPointForCatchUpSubscription(catchUpSubscriptionId, CancellationToken.None);
             });
         }
 
@@ -295,8 +295,8 @@ namespace SubscriptionService.UnitTests
             
             ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
 
-            Guid subscriptionId = Guid.Parse("D1AA40C2-040B-4AF6-9864-8EC0A2E20BCF");
-            await repository.DeleteCatchUpSubscription(subscriptionId, CancellationToken.None);
+            Guid catchUpSubscriptionId = SubscriptionServiceConfigurationTestData.CatchUpSubscriptionId;
+            await repository.DeleteCatchUpSubscription(catchUpSubscriptionId, CancellationToken.None);
 
             var verifyContext = GetContext(databaseName);
             verifyContext.SubscriptionGroups.Count().ShouldBe(0);
@@ -331,8 +331,374 @@ namespace SubscriptionService.UnitTests
 
             Should.Throw<NotFoundException>(async () =>
             {
-                Guid subscriptionId = Guid.Parse("D1AA40C2-040B-4AF6-9864-8EC0A2E20BCF");
-                await repository.DeleteCatchUpSubscription(subscriptionId, CancellationToken.None);
+                Guid catchUpSubscriptionId = SubscriptionServiceConfigurationTestData.CatchUpSubscriptionId;
+                await repository.DeleteCatchUpSubscription(catchUpSubscriptionId, CancellationToken.None);
+            });            
+        }
+
+        #endregion
+
+        #region Create Subscription Stream Tests
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task ConfigurationRepository_CreateSubscriptionStream_SubscriptionStreamCreated(Boolean emptyGuid)
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            Guid subscriptionStreamId =
+                emptyGuid ? Guid.Empty : SubscriptionServiceConfigurationTestData.SubscriptionStreamId;
+            String streamName = SubscriptionServiceConfigurationTestData.SubscriptionStreamName;
+
+            var result = await repository.CreateSubscriptionStream(subscriptionStreamId, streamName,
+                SubscriptionType.Persistent, CancellationToken.None);
+
+            var verifyContext = GetContext(databaseName);
+            verifyContext.SubscriptionStream.Count().ShouldBe(1);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(null)]
+        public void ConfigurationRepository_CreateSubscriptionStream_InvalidStreamName_ErrorThrown(String streamName)
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            Guid subscriptionStreamId = Guid.Parse("876BBEBF-3354-4E4D-8BA0-EE322211155B");
+
+            Should.Throw<ArgumentNullException>(async () =>
+            {
+                var result = await repository.CreateSubscriptionStream(subscriptionStreamId, streamName,
+                    SubscriptionType.Persistent, CancellationToken.None);
+            });
+        }
+
+        [Fact]
+        public void ConfigurationRepository_CreateSubscriptionStream_DuplicateSubscriptionStreamId_ErrorThrown()
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+            context.AddTestData(TestScenario.CreateSubscriptionStreamData);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            Guid subscriptionStreamId = Guid.Parse("876BBEBF-3354-4E4D-8BA0-EE322211155B");
+            String streamName = "TestStream";
+
+            Should.Throw<InvalidOperationException>(async () =>
+            {
+                var result = await repository.CreateSubscriptionStream(subscriptionStreamId, streamName,
+                    SubscriptionType.Persistent, CancellationToken.None);
+            });
+        }
+
+        #endregion
+
+        #region Get Subscription Streams Tests
+
+        [Fact]
+        public async Task ConfigurationRepository_GetSubscriptionStreams_StreamsReturned()
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+            context.AddTestData(TestScenario.GetSubscriptionStreamsData);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            var subscriptionStreams = await repository.GetSubscriptionStreams(SubscriptionType.Persistent, CancellationToken.None);
+
+            subscriptionStreams.ShouldNotBeEmpty();
+        }
+
+        [Fact]
+        public async Task ConfigurationRepository_GetSubscriptionStreams_NoSubscriptionStreams_EmptyListReturned()
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            var subscriptionStreams = await repository.GetSubscriptionStreams(SubscriptionType.Persistent, CancellationToken.None);
+
+            subscriptionStreams.ShouldBeEmpty();
+        }
+        #endregion
+
+        #region Create EndPoint Tests
+        [Fact]
+        public async Task ConfigurationRepository_CreateEndPoint_EndPointCreated()
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            String endPointName = SubscriptionServiceConfigurationTestData.EndPointName;
+            String endpointUrl = SubscriptionServiceConfigurationTestData.EndPointUrl;
+
+            var result = await repository.CreateEndPoint(endPointName, endpointUrl, CancellationToken.None);
+
+            var verifyContext = GetContext(databaseName);
+            verifyContext.EndPoints.Count().ShouldBe(1);
+        }
+
+        [Theory]
+        [InlineData("", "url")]
+        [InlineData(null, "url")]
+        [InlineData("endPointName", "")]
+        [InlineData("endPointName", null)]
+        public void ConfigurationRepository_CreateEndPoint_InvalidData_ErrorThrown(String endPointName, String endpointUrl)
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            Should.Throw<ArgumentNullException>(async () =>
+            {
+                await repository.CreateEndPoint(endPointName, endpointUrl, CancellationToken.None);
+            });
+        }
+
+        #endregion
+
+        #region Create Subscription Group Tests
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task ConfigurationRepository_CreateSubscriptionGroup_SubscriptionGroupCreated(Boolean emptyGuid)
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            Guid subscriptionGroupId =
+                emptyGuid ? Guid.Empty : SubscriptionServiceConfigurationTestData.SubscriptionGroupId;
+            Guid subscriptionStreamId = SubscriptionServiceConfigurationTestData.SubscriptionStreamId;
+            Guid endpointId = SubscriptionServiceConfigurationTestData.EndPointId;
+            String subscriptionGroupName = SubscriptionServiceConfigurationTestData.SubscriptionGroupName;
+
+            var result = await repository.CreateSubscriptionGroup(subscriptionGroupId, subscriptionStreamId, endpointId,
+                subscriptionGroupName, CancellationToken.None);
+
+            var verifyContext = GetContext(databaseName);
+            verifyContext.SubscriptionGroups.Count().ShouldBe(1);
+        }
+
+        [Theory]
+        [InlineData(false, true, "groupName")]
+        [InlineData(true, false, "groupName")]
+        [InlineData(true, true, "")]
+        [InlineData(true, true, null)]
+        public void ConfigurationRepository_CreateSubscriptionGroup_InvalidData_ErrorThrown(Boolean validSubscriptionStreamId, Boolean validEndPointId, String subscriptionGroupName)
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            Guid subscriptionGroupId = Guid.Parse("17191786-9D66-4752-81E2-CBD3A03C2E13");
+            Guid subscriptionStreamId = validSubscriptionStreamId ? Guid.Parse("876BBEBF-3354-4E4D-8BA0-EE322211155B") : Guid.Empty;
+            Guid endpointId = validEndPointId ? Guid.Parse("CBCB485D-F510-4ADE-B9B8-27208468B9B9") : Guid.Empty;
+
+            Should.Throw<ArgumentNullException>(async () =>
+            {
+                await repository.CreateSubscriptionGroup(subscriptionGroupId, subscriptionStreamId, endpointId,
+                    subscriptionGroupName, CancellationToken.None);
+            });
+        }
+
+        [Fact]
+        public void ConfigurationRepository_CreateSubscriptionGroup_DuplicateSubscriptionGroupId_ErrorThrown()
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+            context.AddTestData(TestScenario.CreateSubscriptionGroupData);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            Guid subscriptionGroupId = SubscriptionServiceConfigurationTestData.SubscriptionGroupId;
+            Guid subscriptionStreamId = SubscriptionServiceConfigurationTestData.SubscriptionStreamId;
+            Guid endpointId = SubscriptionServiceConfigurationTestData.EndPointId;
+            String subscriptionGroupName = SubscriptionServiceConfigurationTestData.SubscriptionGroupName;
+
+            Should.Throw<InvalidOperationException>(async () =>
+            {
+                var result = await repository.CreateSubscriptionGroup(subscriptionGroupId, subscriptionStreamId, endpointId, subscriptionGroupName, CancellationToken.None);
+            });
+        }
+
+        #endregion
+
+        #region Get Subscription Group Tests
+
+        [Fact]
+        public async Task ConfigurationRepository_GetSubscriptionGroup_SubscriptionGroupReturned()
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+            context.AddTestData(TestScenario.GetSubscriptionGroupData);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            Guid subscriptionGroupId = SubscriptionServiceConfigurationTestData.SubscriptionGroupId;
+            var subscriptionGroup = await repository.GetSubscriptionGroup(subscriptionGroupId, CancellationToken.None);
+
+            subscriptionGroup.ShouldNotBeNull();
+        }
+
+        [Fact]
+        public async Task ConfigurationRepository_GetSubscriptionGroup_InvalidSubscriptionGroupId_ErrorThrown()
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+        //    context.AddTestData(TestScenario.GetEndPointForSubscriptionGroupData);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            Should.Throw<ArgumentNullException>(async () =>
+            {
+                await repository.GetSubscriptionGroup(Guid.Empty, CancellationToken.None);
+            });
+        }
+
+        [Fact]
+        public async Task ConfigurationRepository_GetSubscriptionGroup_SubscriptionGroupNotFound_ErrorThrown()
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            Guid subscriptionGroupId = SubscriptionServiceConfigurationTestData.SubscriptionGroupId;
+            Should.Throw<NotFoundException>(async () =>
+            {
+                await repository.GetEndPointForSubscriptionGroup(subscriptionGroupId, CancellationToken.None);
+            });
+        }
+        #endregion
+
+        #region Get Subscription Groups Tests
+
+        [Fact]
+        public async Task ConfigurationRepository_GetSubscriptionGroups_SubscriptionGroupsReturned()
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+            context.AddTestData(TestScenario.GetSubscriptionGroupData);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            var subscriptionGroups = await repository.GetSubscriptionGroups(CancellationToken.None);
+
+            subscriptionGroups.ShouldNotBeEmpty();
+        }
+        
+        [Fact]
+        public async Task ConfigurationRepository_GetSubscriptionGroups_SubscriptionGroupsNotFound_EmptyListReturned()
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            var subscriptionGroups = await repository.GetSubscriptionGroups(CancellationToken.None);
+
+            subscriptionGroups.ShouldBeEmpty();
+        }
+
+        #endregion
+
+        #region Remove Subscription Group Tests
+
+        [Fact]
+        public async Task ConfigurationRepository_RemoveSubscriptionGroup_SubscriptionGroupDeleted()
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+            context.AddTestData(TestScenario.RemoveSubscriptionGroupData);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            Guid subscriptionGroupId = SubscriptionServiceConfigurationTestData.SubscriptionGroupId;
+            await repository.RemoveSubscriptionGroup(subscriptionGroupId, CancellationToken.None);
+
+            var verifyContext = GetContext(databaseName);
+            verifyContext.SubscriptionGroups.Count().ShouldBe(0);
+        }
+
+        [Fact]
+        public void ConfigurationRepository_RemoveSubscriptionGroup_InvalidSubscriptionGroupId_ErrorThrown()
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            Should.Throw<ArgumentNullException>(async () =>
+            {
+                await repository.RemoveSubscriptionGroup(Guid.Empty, CancellationToken.None);
+            });            
+        }
+
+        [Fact]
+        public void ConfigurationRepository_RemoveSubscriptionGroup_SubscriptionGroupIdNotFound_ErrorThrown()
+        {
+            String databaseName = Guid.NewGuid().ToString("N");
+            var context = GetContext(databaseName);
+            //context.AddTestData(TestScenario.RemoveSubscriptionGroupData);
+
+            Func<SubscriptionServiceConfigurationContext> contextResolver = () => { return context; };
+            
+            ConfigurationRepository repository = new ConfigurationRepository(contextResolver);
+
+            Should.Throw<NotFoundException>(async () =>
+            {
+                Guid subscriptionGroupId = SubscriptionServiceConfigurationTestData.SubscriptionGroupId;
+                await repository.RemoveSubscriptionGroup(subscriptionGroupId, CancellationToken.None);
             });            
         }
 
@@ -340,24 +706,27 @@ namespace SubscriptionService.UnitTests
     }
 
     public static class ContextExtensions
-    {
+    {       
         public static void AddTestData(this SubscriptionServiceConfigurationContext context, TestScenario testScenario)
         {
             if (testScenario == TestScenario.GetSubscriptionsData)
             {
                 SubscriptionGroup subscriptionGroup = new SubscriptionGroup
                 {
-                    BufferSize = null,
-                    Id  = Guid.Parse("317E17B5-8E98-48A4-BFD3-9C0EE2919EAC"),
-                    EndPointId = Guid.Parse("9F791A4A-56C1-47D0-ABE8-F3DCF3253066"),
-                    Name = "TestGroup1",
-                    StreamPosition = null,
+                    Id = SubscriptionServiceConfigurationTestData.SubscriptionGroupId,
+                    Name = SubscriptionServiceConfigurationTestData.SubscriptionGroupName,
                     SubscriptionStream = new SubscriptionStream
                     {
-                        Id = Guid.Parse("DC390376-71BA-426B-943C-109727906C5B"),
-                        StreamName = "TestStream",
-                        SubscriptionType = 0
-                    }                    
+                        Id = SubscriptionServiceConfigurationTestData.SubscriptionStreamId,
+                        StreamName = SubscriptionServiceConfigurationTestData.SubscriptionStreamName,
+                        SubscriptionType = (Int32)SubscriptionType.Persistent
+                    },
+                    EndPoint = new EndPoint
+                    {
+                        Name = SubscriptionServiceConfigurationTestData.EndPointName,
+                        EndPointId = SubscriptionServiceConfigurationTestData.EndPointId,
+                        Url = SubscriptionServiceConfigurationTestData.EndPointUrl
+                    }
                 };
 
                 context.SubscriptionGroups.Add(subscriptionGroup);
@@ -366,17 +735,20 @@ namespace SubscriptionService.UnitTests
             {
                 SubscriptionGroup subscriptionGroup = new SubscriptionGroup
                 {
-                    BufferSize = null,
-                    Id  = Guid.Parse("317E17B5-8E98-48A4-BFD3-9C0EE2919EAC"),
-                    EndPointId = Guid.Parse("9F791A4A-56C1-47D0-ABE8-F3DCF3253066"),
-                    Name = "TestGroup1",
-                    StreamPosition = 100,
+                    Id = SubscriptionServiceConfigurationTestData.SubscriptionGroupId,
+                    Name = SubscriptionServiceConfigurationTestData.SubscriptionGroupName,
                     SubscriptionStream = new SubscriptionStream
                     {
-                        Id = Guid.Parse("DC390376-71BA-426B-943C-109727906C5B"),
-                        StreamName = "TestStream",
-                        SubscriptionType = 0
-                    }                    
+                        Id = SubscriptionServiceConfigurationTestData.SubscriptionStreamId,
+                        StreamName = SubscriptionServiceConfigurationTestData.SubscriptionStreamName,
+                        SubscriptionType = (Int32)SubscriptionType.Persistent
+                    },
+                    EndPoint = new EndPoint
+                    {
+                        Name = SubscriptionServiceConfigurationTestData.EndPointName,
+                        EndPointId = SubscriptionServiceConfigurationTestData.EndPointId,
+                        Url = SubscriptionServiceConfigurationTestData.EndPointUrl
+                    }
                 };
 
                 context.SubscriptionGroups.Add(subscriptionGroup);
@@ -385,41 +757,39 @@ namespace SubscriptionService.UnitTests
             {
                 SubscriptionGroup subscriptionGroup = new SubscriptionGroup
                 {
-                    BufferSize = null,
-                    Id  = Guid.Parse("317E17B5-8E98-48A4-BFD3-9C0EE2919EAC"),
-                    EndPointId = Guid.Parse("9F791A4A-56C1-47D0-ABE8-F3DCF3253066"),
-                    Name = "TestGroup1",
-                    StreamPosition = 100,
+                    Id = SubscriptionServiceConfigurationTestData.SubscriptionGroupId,
+                    Name = SubscriptionServiceConfigurationTestData.SubscriptionGroupName,
                     SubscriptionStream = new SubscriptionStream
                     {
-                        Id = Guid.Parse("DC390376-71BA-426B-943C-109727906C5B"),
-                        StreamName = "TestStream",
-                        SubscriptionType = 0
-                    } ,
+                        Id = SubscriptionServiceConfigurationTestData.SubscriptionStreamId,
+                        StreamName = SubscriptionServiceConfigurationTestData.SubscriptionStreamName,
+                        SubscriptionType = (Int32)SubscriptionType.Persistent
+                    },
                     EndPoint = new EndPoint
                     {
-                        EndPointId = Guid.Parse("5A13083E-61BD-492A-93EC-4B59DAF45B06"),
-                        Name = "TestEndPoint1",
-                        Url = "http://localhost:5000"
+                        Name = SubscriptionServiceConfigurationTestData.EndPointName,
+                        EndPointId = SubscriptionServiceConfigurationTestData.EndPointId,
+                        Url = SubscriptionServiceConfigurationTestData.EndPointUrl
                     }
                 };
+
                 context.SubscriptionGroups.Add(subscriptionGroup);
             }
             else if (testScenario == TestScenario.GetEndPointForCatchUpSubscriptionData)
             {
                 CatchUpSubscription catchUpSubscription = new CatchUpSubscription
                 {
-                    CreateDateTime = DateTime.Now,
+                    CreateDateTime = SubscriptionServiceConfigurationTestData.CatchUpSubscriptionCreatDateTime,
                     EndPoint = new EndPoint
                     {
-                        EndPointId = Guid.Parse("42FB7F28-82B7-43E1-8D7D-32E073B9DE1F"),
-                        Name = "TestCatchUpEndPoint",
-                        Url = "http://localhost:5001"
+                        EndPointId = SubscriptionServiceConfigurationTestData.EndPointId,
+                        Name = SubscriptionServiceConfigurationTestData.EndPointName,
+                        Url = SubscriptionServiceConfigurationTestData.EndPointUrl
                     },
-                    Name = "TestCatchup",
-                    Id = Guid.Parse("D1AA40C2-040B-4AF6-9864-8EC0A2E20BCF"),
-                    Position = 0,
-                    StreamName = "TestStream"
+                    Name = SubscriptionServiceConfigurationTestData.CatchUpSubscriptionName,
+                    Id = SubscriptionServiceConfigurationTestData.CatchUpSubscriptionId,
+                    Position = SubscriptionServiceConfigurationTestData.CatchUpSubscriptionPosition,
+                    StreamName = SubscriptionServiceConfigurationTestData.SubscriptionStreamName
                 };
 
                 context.CatchUpSubscriptions.Add(catchUpSubscription);
@@ -428,17 +798,17 @@ namespace SubscriptionService.UnitTests
             {
                 CatchUpSubscription catchUpSubscription = new CatchUpSubscription
                 {
-                    CreateDateTime = DateTime.Now,
+                    CreateDateTime = SubscriptionServiceConfigurationTestData.CatchUpSubscriptionCreatDateTime,
                     EndPoint = new EndPoint
                     {
-                        EndPointId = Guid.Parse("42FB7F28-82B7-43E1-8D7D-32E073B9DE1F"),
-                        Name = "TestCatchUpEndPoint",
-                        Url = "http://localhost:5001"
+                        EndPointId = SubscriptionServiceConfigurationTestData.EndPointId,
+                        Name = SubscriptionServiceConfigurationTestData.EndPointName,
+                        Url = SubscriptionServiceConfigurationTestData.EndPointUrl
                     },
-                    Name = "TestCatchup",
-                    Id = Guid.Parse("D1AA40C2-040B-4AF6-9864-8EC0A2E20BCF"),
-                    Position = 0,
-                    StreamName = "TestStream"
+                    Name = SubscriptionServiceConfigurationTestData.CatchUpSubscriptionName,
+                    Id = SubscriptionServiceConfigurationTestData.CatchUpSubscriptionId,
+                    Position = SubscriptionServiceConfigurationTestData.CatchUpSubscriptionPosition,
+                    StreamName = SubscriptionServiceConfigurationTestData.SubscriptionStreamName
                 };
 
                 context.CatchUpSubscriptions.Add(catchUpSubscription);
@@ -447,22 +817,108 @@ namespace SubscriptionService.UnitTests
             {
                 CatchUpSubscription catchUpSubscription = new CatchUpSubscription
                 {
-                    CreateDateTime = DateTime.Now,
+                    CreateDateTime = SubscriptionServiceConfigurationTestData.CatchUpSubscriptionCreatDateTime,
                     EndPoint = new EndPoint
                     {
-                        EndPointId = Guid.Parse("42FB7F28-82B7-43E1-8D7D-32E073B9DE1F"),
-                        Name = "TestCatchUpEndPoint",
-                        Url = "http://localhost:5001"
+                        EndPointId = SubscriptionServiceConfigurationTestData.EndPointId,
+                        Name = SubscriptionServiceConfigurationTestData.EndPointName,
+                        Url = SubscriptionServiceConfigurationTestData.EndPointUrl
                     },
-                    Name = "TestCatchup",
-                    Id = Guid.Parse("D1AA40C2-040B-4AF6-9864-8EC0A2E20BCF"),
-                    Position = 0,
-                    StreamName = "TestStream"
+                    Name = SubscriptionServiceConfigurationTestData.CatchUpSubscriptionName,
+                    Id = SubscriptionServiceConfigurationTestData.CatchUpSubscriptionId,
+                    Position = SubscriptionServiceConfigurationTestData.CatchUpSubscriptionPosition,
+                    StreamName = SubscriptionServiceConfigurationTestData.SubscriptionStreamName
                 };
 
                 context.CatchUpSubscriptions.Add(catchUpSubscription);
             }
-            
+            else if (testScenario == TestScenario.CreateSubscriptionStreamData)
+            {
+                SubscriptionStream subscriptionStream = new SubscriptionStream
+                {
+                    StreamName = SubscriptionServiceConfigurationTestData.SubscriptionStreamName,
+                    Id = SubscriptionServiceConfigurationTestData.SubscriptionStreamId,
+                    SubscriptionType = (Int32)SubscriptionType.Persistent
+                };
+
+                context.SubscriptionStream.Add(subscriptionStream);
+            }
+            else if (testScenario == TestScenario.GetSubscriptionStreamsData)
+            {
+                SubscriptionStream subscriptionStream1 = new SubscriptionStream
+                {
+                    StreamName = SubscriptionServiceConfigurationTestData.SubscriptionStream1Name,
+                    Id = SubscriptionServiceConfigurationTestData.SubscriptionStream1Id,
+                    SubscriptionType = (Int32)SubscriptionType.Persistent
+                };
+
+                SubscriptionStream subscriptionStream2 = new SubscriptionStream
+                {
+                    StreamName = SubscriptionServiceConfigurationTestData.SubscriptionStream2Name,
+                    Id = SubscriptionServiceConfigurationTestData.SubscriptionStream2Id,
+                    SubscriptionType = (Int32)SubscriptionType.Persistent
+                };
+
+                context.SubscriptionStream.Add(subscriptionStream1);
+                context.SubscriptionStream.Add(subscriptionStream2);
+            }
+            else if (testScenario == TestScenario.CreateSubscriptionGroupData)
+            {
+                SubscriptionGroup subscriptionGroup = new SubscriptionGroup
+                {
+                    Id = SubscriptionServiceConfigurationTestData.SubscriptionGroupId,
+                    Name = SubscriptionServiceConfigurationTestData.SubscriptionGroupName,
+                    SubscriptionStreamId = SubscriptionServiceConfigurationTestData.SubscriptionStreamId,
+                    EndPointId = SubscriptionServiceConfigurationTestData.EndPointId
+                };
+
+                context.SubscriptionGroups.Add(subscriptionGroup);
+            }
+            else if (testScenario == TestScenario.GetSubscriptionGroupData)
+            {
+                SubscriptionGroup subscriptionGroup = new SubscriptionGroup
+                {
+                    Id = SubscriptionServiceConfigurationTestData.SubscriptionGroupId,
+                    Name = SubscriptionServiceConfigurationTestData.SubscriptionGroupName,
+                    SubscriptionStream = new SubscriptionStream
+                    {
+                        Id = SubscriptionServiceConfigurationTestData.SubscriptionStreamId,
+                        StreamName = SubscriptionServiceConfigurationTestData.SubscriptionStreamName,
+                        SubscriptionType = (Int32)SubscriptionType.Persistent
+                    },
+                    EndPoint = new EndPoint
+                    {
+                        Name = SubscriptionServiceConfigurationTestData.EndPointName,
+                        EndPointId = SubscriptionServiceConfigurationTestData.EndPointId,
+                        Url = SubscriptionServiceConfigurationTestData.EndPointUrl
+                    }
+                };
+
+                context.SubscriptionGroups.Add(subscriptionGroup);
+            }
+            else if (testScenario == TestScenario.RemoveSubscriptionGroupData)
+            {
+                SubscriptionGroup subscriptionGroup = new SubscriptionGroup
+                {
+                    Id = SubscriptionServiceConfigurationTestData.SubscriptionGroupId,
+                    Name = SubscriptionServiceConfigurationTestData.SubscriptionGroupName,
+                    SubscriptionStream = new SubscriptionStream
+                    {
+                        Id = SubscriptionServiceConfigurationTestData.SubscriptionStreamId,
+                        StreamName = SubscriptionServiceConfigurationTestData.SubscriptionStreamName,
+                        SubscriptionType = (Int32)SubscriptionType.Persistent
+                    },
+                    EndPoint = new EndPoint
+                    {
+                        Name = SubscriptionServiceConfigurationTestData.EndPointName,
+                        EndPointId = SubscriptionServiceConfigurationTestData.EndPointId,
+                        Url = SubscriptionServiceConfigurationTestData.EndPointUrl
+                    }
+                };
+
+                context.SubscriptionGroups.Add(subscriptionGroup);
+            }
+
             context.SaveChanges();
         }        
     }
@@ -475,6 +931,11 @@ namespace SubscriptionService.UnitTests
         GetEndPointForSubscriptionGroupData,
         GetEndPointForCatchUpSubscriptionData,
         GetNextCatchupSubscriptionData,
-        DeleteCatchUpSubscriptionData
+        DeleteCatchUpSubscriptionData,
+        CreateSubscriptionStreamData,
+        GetSubscriptionStreamsData,
+        CreateSubscriptionGroupData,
+        GetSubscriptionGroupData,
+        RemoveSubscriptionGroupData
     }
 }

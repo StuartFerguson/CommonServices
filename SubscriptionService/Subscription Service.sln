@@ -16,6 +16,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubscriptionService.DataTra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubscriptionService.UnitTests", "SubscriptionService.UnitTests\SubscriptionService.UnitTests.csproj", "{150D1E49-A451-4AD6-BC12-8BD138475EF7}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubscriptionService.Configuration.Service", "SubscriptionService.Configuration.Service\SubscriptionService.Configuration.Service.csproj", "{21086491-88CF-4BE7-A951-E4DD25886DC9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,6 +44,10 @@ Global
 		{150D1E49-A451-4AD6-BC12-8BD138475EF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{150D1E49-A451-4AD6-BC12-8BD138475EF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{150D1E49-A451-4AD6-BC12-8BD138475EF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21086491-88CF-4BE7-A951-E4DD25886DC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21086491-88CF-4BE7-A951-E4DD25886DC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21086491-88CF-4BE7-A951-E4DD25886DC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21086491-88CF-4BE7-A951-E4DD25886DC9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -52,6 +58,7 @@ Global
 		{08B975F8-2C3F-4109-8E81-F629C88A2294} = {8AB81478-FAC4-4C66-BDE8-4C4EC889291D}
 		{72C6F61E-785B-425C-8EAF-A1ECAB2AF5B5} = {8AB81478-FAC4-4C66-BDE8-4C4EC889291D}
 		{150D1E49-A451-4AD6-BC12-8BD138475EF7} = {7A2FD2F5-B0CA-4163-97E3-4B7B30D12F85}
+		{21086491-88CF-4BE7-A951-E4DD25886DC9} = {8AB81478-FAC4-4C66-BDE8-4C4EC889291D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C7E62B86-381F-4365-AE86-D09C81C348A6}
