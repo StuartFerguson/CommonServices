@@ -1,0 +1,1 @@
+﻿docker build -t "subscriptionserviceservice" -f "d:\projects\stuartferguson\commonservices\subscriptionservice\subscriptionservice.service\dockerfile" --label "com.microsoft.created-by=visual-studio" ".."
