@@ -62,13 +62,27 @@ namespace SubscriptionService.Service
             services.Configure<ServiceSettings>(Program.Configuration.GetSection("ServiceSettings"));
             services.Configure<EventStoreSettings>(Program.Configuration.GetSection("EventStoreSettings"));
 
-            var connectionString = Program.Configuration.GetConnectionString(nameof(SubscriptionServiceConfigurationContext));
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-            String migrationsAssembly = typeof(SubscriptionServiceConfigurationContext).GetTypeInfo().Assembly.GetName().Name;
+            if (environment == "IntegrationTest")
+            {
+                services.AddDbContext<SubscriptionServiceConfigurationContext>(builder =>
+                        builder.UseInMemoryDatabase("SubscriptionServiceConfigurationContext"))
+                    .AddTransient<SubscriptionServiceConfigurationContext>();
+            }
+            else
+            {
+                var connectionString =
+                    Program.Configuration.GetConnectionString(nameof(SubscriptionServiceConfigurationContext));
 
-            services.AddDbContext<SubscriptionServiceConfigurationContext>(builder =>
-                    builder.UseMySql(connectionString, sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
-                .AddTransient<SubscriptionServiceConfigurationContext>();
+                String migrationsAssembly = typeof(SubscriptionServiceConfigurationContext).GetTypeInfo().Assembly
+                    .GetName().Name;
+
+                services.AddDbContext<SubscriptionServiceConfigurationContext>(builder =>
+                        builder.UseMySql(connectionString,
+                            sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
+                    .AddTransient<SubscriptionServiceConfigurationContext>();
+            }
         }
         #endregion
  
