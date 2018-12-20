@@ -53,7 +53,8 @@ namespace SubscriptionService.Service
         {
             var configurationBuilder = new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                    .AddEnvironmentVariables();
 
             Program.Configuration = configurationBuilder.Build();
         }

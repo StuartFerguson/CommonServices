@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -18,6 +20,7 @@ using NLog.Extensions.Logging;
 using Shared.General;
 using StructureMap;
 using SubscriptionService.Configuration.Service.Bootstrapper;
+using SubscriptionService.Database;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace SubscriptionService.Configuration.Service
@@ -175,6 +178,22 @@ namespace SubscriptionService.Configuration.Service
                 options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             
+            if (HostingEnvironment.IsEnvironment("IntegrationTest"))
+            {
+                services.AddDbContext<SubscriptionServiceConfigurationContext>(builder =>
+                        builder.UseInMemoryDatabase("SubscriptionServiceConfigurationContext"))
+                    .AddTransient<SubscriptionServiceConfigurationContext>();
+            }
+            else
+            {
+                var connectionString =
+                    Startup.Configuration.GetConnectionString(nameof(SubscriptionServiceConfigurationContext));
+
+                services.AddDbContext<SubscriptionServiceConfigurationContext>(builder =>
+                        builder.UseMySql(connectionString))
+                    .AddTransient<SubscriptionServiceConfigurationContext>();;
+            }
+
             services.AddMvcCore();
             
             services.AddSwaggerGen(c =>

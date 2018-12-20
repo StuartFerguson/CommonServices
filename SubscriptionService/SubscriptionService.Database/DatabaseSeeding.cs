@@ -10,8 +10,11 @@ namespace SubscriptionService.Database
         /// <param name="context">The context.</param>
         public static void InitialiseDatabase(SubscriptionServiceConfigurationContext context)
         {
-            context.Database.Migrate();
-
+            if (context.Database.IsMySql())
+            {
+                context.Database.Migrate();
+            }
+        
             context.SaveChanges();
         }
     }
