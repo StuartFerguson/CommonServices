@@ -6,6 +6,11 @@ namespace SubscriptionService.UnitTests
 {
     public class SubscriptionServiceConfigurationTestData
     {
+        public static Guid SubscriptionServiceId = Guid.Parse("65EC18D4-28CB-404B-B9AA-51451E610318");
+        public static String SubscriptionServiceDescription = "TestSubscriptionService";
+
+        public static Guid SubscriptionServiceGroupId = Guid.Parse("6E7AA906-6CB6-4324-8C90-7D1D7F8A2481");
+
         public const String SubscriptionStreamName = "TestStream";
         public static Guid SubscriptionStreamId = Guid.Parse("876BBEBF-3354-4E4D-8BA0-EE322211155B");
 

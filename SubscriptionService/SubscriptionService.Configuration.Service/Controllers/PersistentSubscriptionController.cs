@@ -149,6 +149,117 @@ namespace SubscriptionService.Configuration.Service.Controllers
             return this.Ok();
         }
         #endregion
+        
+        #region public async Task<IActionResult> CreateSubscriptionService(Guid subscriptionServiceId, String description, CancellationToken cancellationToken)        
+        /// <summary>
+        /// Creates the subscription service.
+        /// </summary>
+        /// <param name="subscriptionServiceId">The subscription service identifier.</param>
+        /// <param name="description">The description.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        [HttpPost]        
+        [Route("subscriptionservice")]
+        public async Task<IActionResult> CreateSubscriptionService(Guid subscriptionServiceId, String description, CancellationToken cancellationToken)
+        {
+            subscriptionServiceId =
+                await this.ConfigurationRepository.CreateSubscriptionService(subscriptionServiceId, description,
+                    cancellationToken);
+
+            return this.Ok(subscriptionServiceId);
+        }
+        #endregion
+
+        #region public async Task<IActionResult> AddSubscriptionGroupToSubscriptionService(Guid subscriptionServiceId, Guid[] subscriptionGroupId, CancellationToken cancellationToken)        
+        /// <summary>
+        /// Adds the subscription group to subscription service.
+        /// </summary>
+        /// <param name="subscriptionServiceId">The subscription service identifier.</param>
+        /// <param name="subscriptionGroupId">The subscription group identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("subscriptionservice/{subscriptionServiceId}")]
+        public async Task<IActionResult> AddSubscriptionGroupToSubscriptionService(Guid subscriptionServiceId, Guid[] subscriptionGroupId, CancellationToken cancellationToken)
+        {
+            foreach (Guid id in subscriptionGroupId)
+            {
+                // TODO: Eventually we cna create a call that takes in Guid[]
+                await this.ConfigurationRepository.AddSubscriptionGroupToSubscriptionService(subscriptionServiceId, id, cancellationToken);
+            }
+
+            return this.Ok();
+        }
+        #endregion
+
+        #region public async Task<IActionResult> GetSubscriptionService(Guid subscriptionServiceId, CancellationToken cancellationToken)        
+        /// <summary>
+        /// Gets the subscription service.
+        /// </summary>
+        /// <param name="subscriptionServiceId">The subscription service identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("subscriptionservice/{subscriptionServiceId}")]
+        public async Task<IActionResult> GetSubscriptionService(Guid subscriptionServiceId, CancellationToken cancellationToken)
+        {
+            var result = await this.ConfigurationRepository.GetSubscriptionGroups(cancellationToken);
+
+            return this.Ok(result);
+        }
+        #endregion
+
+        #region public async Task<IActionResult> GetSubscriptionServices(CancellationToken cancellationToken)        
+        /// <summary>
+        /// Gets the subscription services.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("subscriptionservice")]
+        public async Task<IActionResult> GetSubscriptionServices(CancellationToken cancellationToken)
+        {
+            var result = await this.ConfigurationRepository.GetSubscriptionGroups(cancellationToken);
+
+            return this.Ok(result);
+        }
+        #endregion
+
+        #region public async Task<IActionResult> RemoveSubscriptionGroupFromSubscriptionService(Guid subscriptionServiceId,Guid subscriptionGroupId, CancellationToken cancellationToken)        
+        /// <summary>
+        /// Removes the subscription group from subscription service.
+        /// </summary>
+        /// <param name="subscriptionServiceId">The subscription service identifier.</param>
+        /// <param name="subscriptionGroupId">The subscription group identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        [HttpDelete]
+        [Route("subscriptionservice/{subscriptionServiceId}/{subscriptionGroupId}")]
+        public async Task<IActionResult> RemoveSubscriptionGroupFromSubscriptionService(Guid subscriptionServiceId, Guid subscriptionGroupId, CancellationToken cancellationToken)
+        {
+            await this.ConfigurationRepository.RemoveSubscriptionGroupFromSubscriptionService(subscriptionServiceId,subscriptionGroupId, cancellationToken);
+
+            return this.Ok();
+        }
+
+        #endregion
+
+        #region public async Task<IActionResult> GetSubscriptionGroupsForSubscriptionService(Guid subscriptionServiceId, CancellationToken cancellationToken)        
+        /// <summary>
+        /// Gets the subscription groups for subscription service.
+        /// </summary>
+        /// <param name="subscriptionServiceId">The subscription service identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("subscriptionservice/{subscriptionServiceId}/subscriptionGroups")]
+        public async Task<IActionResult> GetSubscriptionGroupsForSubscriptionService(Guid subscriptionServiceId, CancellationToken cancellationToken)
+        {
+            var subscriptionGroups = await this.ConfigurationRepository.GetSubscriptions(subscriptionServiceId, cancellationToken);
+            
+            return this.Ok(subscriptionGroups);
+        }
+        #endregion
 
         #endregion
     }

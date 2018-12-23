@@ -105,14 +105,18 @@ namespace SubscriptionService.BusinessLogic.SubscriptionCache
         /// <returns></returns>
         private async Task ProcessSubscriptions()
         {
+            // Get the subscription service id from the config
+            var subscriptionServiceId = this.ServiceSettings.Value.SubscriptionServiceId;
+
             // Check if we have any groups currently
             if (!this.SubscriptionGroups.Any())
             {
                 Logger.LogInformation("First Initialisation of Cache");
 
                 // Currently no groups loaded into memory
+
                 // Read the groups from configuration
-                var subscriptionGroups = await this.ConfigurationRepository.GetSubscriptions(CancellationToken.None);
+                var subscriptionGroups = await this.ConfigurationRepository.GetSubscriptions(subscriptionServiceId, CancellationToken.None);
                 //subscriptionGroups = subscriptionGroups.Take(1).ToList();
                 foreach (var subscriptionGroup in subscriptionGroups)
                 {
@@ -137,7 +141,7 @@ namespace SubscriptionService.BusinessLogic.SubscriptionCache
             else
             {
                 // Read the groups from configuration to determine any new/updates/deletes
-                var subscriptionGroups = await this.ConfigurationRepository.GetSubscriptions(CancellationToken.None);
+                var subscriptionGroups = await this.ConfigurationRepository.GetSubscriptions(subscriptionServiceId, CancellationToken.None);
 
                 var cachedConfiguration = this.SubscriptionGroups.Select(x => x.Value).ToList();
 

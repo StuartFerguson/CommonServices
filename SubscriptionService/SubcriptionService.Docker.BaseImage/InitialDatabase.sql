@@ -60,3 +60,24 @@ ALTER TABLE `SubscriptionStream` DROP COLUMN `IsNetCoreDomainStream`;
 INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
 VALUES ('20181212111524_RemoveIsNetCoreStream', '2.1.4-rtm-31024');
 
+CREATE TABLE `SubscriptionServices` (
+    `SubscriptionServiceId` char(36) NOT NULL,
+    `Description` longtext NULL,
+    CONSTRAINT `PK_SubscriptionServices` PRIMARY KEY (`SubscriptionServiceId`)
+);
+
+CREATE TABLE `SubscriptionServiceGroups` (
+    `SubscriptionServiceGroupId` char(36) NOT NULL,
+    `SubscriptionGroupId` char(36) NOT NULL,
+    `SubscriptionServiceId` char(36) NOT NULL,
+    CONSTRAINT `PK_SubscriptionServiceGroups` PRIMARY KEY (`SubscriptionServiceGroupId`),
+    CONSTRAINT `FK_SubscriptionServiceGroups_SubscriptionGroups_SubscriptionGro~` FOREIGN KEY (`SubscriptionGroupId`) REFERENCES `SubscriptionGroups` (`Id`) ON DELETE CASCADE,
+    CONSTRAINT `FK_SubscriptionServiceGroups_SubscriptionServices_SubscriptionS~` FOREIGN KEY (`SubscriptionServiceId`) REFERENCES `SubscriptionServices` (`SubscriptionServiceId`) ON DELETE CASCADE
+);
+
+CREATE INDEX `IX_SubscriptionServiceGroups_SubscriptionGroupId` ON `SubscriptionServiceGroups` (`SubscriptionGroupId`);
+
+CREATE INDEX `IX_SubscriptionServiceGroups_SubscriptionServiceId` ON `SubscriptionServiceGroups` (`SubscriptionServiceId`);
+
+INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+VALUES ('20181223083413_AddMultiSubscriptionServiceSupport', '2.1.4-rtm-31024');

@@ -28,4 +28,23 @@ namespace SubscriptionService.DataTransferObjects
         /// </value>
         public Int32 SubscriptionType { get; set; }
     }
+
+    public class SubscriptionService
+    {
+        /// <summary>
+        /// Gets or sets the subscription service identifier.
+        /// </summary>
+        /// <value>
+        /// The subscription service identifier.
+        /// </value>
+        public Guid SubscriptionServiceId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the description.
+        /// </summary>
+        /// <value>
+        /// The description.
+        /// </value>
+        public String Description { get; set; }
+    }
 }

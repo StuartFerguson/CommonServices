@@ -98,6 +98,22 @@ namespace SubscriptionService.Database
         /// </value>
         public virtual DbSet<CatchUpSubscription> CatchUpSubscriptions { get; set; }
 
+        /// <summary>
+        /// Gets or sets the subscription services.
+        /// </summary>
+        /// <value>
+        /// The subscription services.
+        /// </value>
+        public virtual DbSet<Models.SubscriptionService> SubscriptionServices { get; set; }
+
+        /// <summary>
+        /// Gets or sets the subscription service groups.
+        /// </summary>
+        /// <value>
+        /// The subscription service groups.
+        /// </value>
+        public virtual DbSet<SubscriptionServiceGroup> SubscriptionServiceGroups { get; set; }
+
         #endregion
     }
 }
