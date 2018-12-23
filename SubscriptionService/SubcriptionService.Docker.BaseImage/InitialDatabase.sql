@@ -1,6 +1,6 @@
 CREATE DATABASE SubscriptionServiceConfiguration;
 
-USE DATABASE SubscriptionServiceConfiguration;
+USE SubscriptionServiceConfiguration;
 
 CREATE TABLE IF NOT EXISTS `__EFMigrationsHistory` (
     `MigrationId` varchar(95) NOT NULL,
