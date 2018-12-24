@@ -11,5 +11,13 @@ namespace SubscriptionService.BusinessLogic
         /// The cache timeout.
         /// </value>
         public Int32 CacheTimeout { get; set; }
+
+        /// <summary>
+        /// Gets or sets the subscription service identifier.
+        /// </summary>
+        /// <value>
+        /// The subscription service identifier.
+        /// </value>
+        public Guid SubscriptionServiceId { get; set; }
     }
 }

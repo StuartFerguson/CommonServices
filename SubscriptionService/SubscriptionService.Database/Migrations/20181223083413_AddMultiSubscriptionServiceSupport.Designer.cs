@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SubscriptionService.Database;
 
 namespace SubscriptionService.Database.Migrations
 {
     [DbContext(typeof(SubscriptionServiceConfigurationContext))]
-    partial class SubscriptionServiceConfigurationContextModelSnapshot : ModelSnapshot
+    [Migration("20181223083413_AddMultiSubscriptionServiceSupport")]
+    partial class AddMultiSubscriptionServiceSupport
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

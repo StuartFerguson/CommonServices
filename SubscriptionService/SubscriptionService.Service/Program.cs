@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,7 +40,8 @@ namespace SubscriptionService.Service
             SubscriptionService.StartService();
             Logger.LogInformation("Service Started");
 
-            Console.Read();
+            //Console.Read();
+            Thread.Sleep(Timeout.Infinite);
         }
 
         #region Private Methods

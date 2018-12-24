@@ -12,6 +12,7 @@ using CatchUpSubscriptionDTO = SubscriptionService.DataTransferObjects.CatchUpSu
 using EndPointDTO = SubscriptionService.DataTransferObjects.EndPoint;
 using SubscriptionGroupDTO = SubscriptionService.DataTransferObjects.SubscriptionGroup;
 using SubscriptionStreamDTO = SubscriptionService.DataTransferObjects.SubscriptionStream;
+using SubscriptionServiceDTO = SubscriptionService.DataTransferObjects.SubscriptionService;
 
 namespace SubscriptionService.BusinessLogic.Repository
 {
@@ -45,25 +46,30 @@ namespace SubscriptionService.BusinessLogic.Repository
         /// <summary>
         /// Gets the subscriptions.
         /// </summary>
+        /// <param name="subscriptionServiceId">The subscription service identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        public async Task<List<SubscriptionGroupDTO>> GetSubscriptions(CancellationToken cancellationToken)
+        public async Task<List<SubscriptionGroupDTO>> GetSubscriptions(Guid subscriptionServiceId, CancellationToken cancellationToken)
         {
             List<SubscriptionGroupDTO> result = new List<SubscriptionGroupDTO>();
 
             using (var context = this.ContextResolver())
             {
-                var subscriptionGroups = await context.SubscriptionGroups.Include(g => g.SubscriptionStream).ToListAsync(cancellationToken);
+                var subscriptionServiceGroups = await context.SubscriptionServiceGroups
+                    .Include(g =>g.SubscriptionGroup)
+                    .ThenInclude(g => g.SubscriptionStream)
+                    .Where(g => g.SubscriptionServiceId == subscriptionServiceId)
+                    .ToListAsync(cancellationToken);
 
-                foreach (var subscriptionGroup in subscriptionGroups)
+                foreach (var subscriptionServiceGroup in subscriptionServiceGroups)
                 {
                     result.Add(new SubscriptionGroupDTO
                     {
-                        SubscriptionGroupId = subscriptionGroup.Id,
-                        GroupName = subscriptionGroup.Name,
-                        StreamPositionToRestartFrom = subscriptionGroup.StreamPosition,
-                        StreamName = subscriptionGroup.SubscriptionStream.StreamName,
-                        BufferSize = subscriptionGroup.BufferSize
+                        SubscriptionGroupId = subscriptionServiceGroup.SubscriptionGroupId,
+                        GroupName = subscriptionServiceGroup.SubscriptionGroup.Name,
+                        StreamPositionToRestartFrom = subscriptionServiceGroup.SubscriptionGroup.StreamPosition,
+                        StreamName = subscriptionServiceGroup.SubscriptionGroup.SubscriptionStream.StreamName,
+                        BufferSize = subscriptionServiceGroup.SubscriptionGroup.BufferSize
                     });
                 }
             }
@@ -437,7 +443,6 @@ namespace SubscriptionService.BusinessLogic.Repository
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-
         public async Task<List<SubscriptionGroupDTO>> GetSubscriptionGroups(CancellationToken cancellationToken)
         {
             List<SubscriptionGroupDTO> result =new List<SubscriptionGroupDTO>();
@@ -474,7 +479,7 @@ namespace SubscriptionService.BusinessLogic.Repository
 
             using (var context = this.ContextResolver())
             {
-                var  subscriptionGroup = await context.SubscriptionGroups.Where(s => s.Id == subscriptionGroupId)
+                var subscriptionGroup = await context.SubscriptionGroups.Where(s => s.Id == subscriptionGroupId)
                     .SingleOrDefaultAsync(cancellationToken);
 
                 if (subscriptionGroup == null)
@@ -486,6 +491,171 @@ namespace SubscriptionService.BusinessLogic.Repository
 
                 await context.SaveChangesAsync(cancellationToken);
             }
+        }
+        #endregion
+
+        #region public async Task CreateSubscriptionService(Guid subscriptionServiceId, String description, CancellationToken cancellationToken)        
+        /// <summary>
+        /// Creates the subscription service.
+        /// </summary>
+        /// <param name="subscriptionServiceId">The subscription service identifier.</param>
+        /// <param name="description">The description.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        public async Task<Guid> CreateSubscriptionService(Guid subscriptionServiceId, String description, CancellationToken cancellationToken)
+        {
+            Guard.ThrowIfNullOrEmpty(description, typeof(ArgumentNullException), "Description cannot be null or empty");
+
+            if (subscriptionServiceId == Guid.Empty)
+            {
+                subscriptionServiceId = Guid.NewGuid();
+            }
+
+            using (var context = this.ContextResolver())
+            {
+                Database.Models.SubscriptionService subscriptionService = new Database.Models.SubscriptionService
+                {
+                    SubscriptionServiceId = subscriptionServiceId,
+                    Description = description
+                };
+
+                context.SubscriptionServices.Add(subscriptionService);
+
+                await context.SaveChangesAsync(cancellationToken);
+            }
+
+            return subscriptionServiceId;
+        }
+        #endregion
+
+        #region public async Task AddSubscriptionGroupToSubscriptionService(Guid subscriptionServiceId, Guid subscriptionGroupId, CancellationToken cancellationToken)        
+        /// <summary>
+        /// Adds the subscription group to subscription service.
+        /// </summary>
+        /// <param name="subscriptionServiceId">The subscription service identifier.</param>
+        /// <param name="subscriptionGroupId">The subscription group identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        public async Task<Guid> AddSubscriptionGroupToSubscriptionService(Guid subscriptionServiceId, Guid subscriptionGroupId, CancellationToken cancellationToken)
+        {
+            Guid result = Guid.Empty;
+
+            Guard.ThrowIfInvalidGuid(subscriptionServiceId, typeof(ArgumentNullException), "Subscription Service Id cannot be an empty GUID");
+            Guard.ThrowIfInvalidGuid(subscriptionGroupId, typeof(ArgumentNullException), "Subscription Group Id cannot be an empty GUID");
+
+            using (var context = this.ContextResolver())
+            {
+                SubscriptionServiceGroup subscriptionServiceGroup = new SubscriptionServiceGroup
+                {
+                    SubscriptionGroupId = subscriptionGroupId,
+                    SubscriptionServiceId = subscriptionServiceId,
+                    SubscriptionServiceGroupId = Guid.NewGuid()
+                };
+
+                context.SubscriptionServiceGroups.Add(subscriptionServiceGroup);
+
+                await context.SaveChangesAsync(cancellationToken);
+
+                result = subscriptionServiceGroup.SubscriptionServiceGroupId;
+            }
+
+            return result;
+        }
+        #endregion
+
+        #region public async Task RemoveSubscriptionGroupFromSubscriptionService(Guid subscriptionServiceId, Guid subscriptionGroupId, CancellationToken cancellationToken)
+        /// <summary>
+        /// Removes the subscription group from subscription service.
+        /// </summary>
+        /// <param name="subscriptionServiceId">The subscription service identifier.</param>
+        /// <param name="subscriptionGroupId">The subscription group identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        /// <exception cref="NotFoundException">Subscription Service Group with Subscription Service Id {subscriptionServiceId} and Subscription Group Id {subscriptionGroupId}</exception>
+        public async Task RemoveSubscriptionGroupFromSubscriptionService(Guid subscriptionServiceId, Guid subscriptionGroupId, CancellationToken cancellationToken)
+        {
+            Guard.ThrowIfInvalidGuid(subscriptionServiceId, typeof(ArgumentNullException), "Subscription Service Id cannot be an empty GUID");
+            Guard.ThrowIfInvalidGuid(subscriptionGroupId, typeof(ArgumentNullException), "Subscription Group Id cannot be an empty GUID");
+
+            using (var context = this.ContextResolver())
+            {
+                var subscriptionServiceGroup = await context.SubscriptionServiceGroups.Where(s =>
+                    s.SubscriptionServiceId == subscriptionServiceId &&
+                    s.SubscriptionGroupId == subscriptionGroupId).SingleOrDefaultAsync(cancellationToken);
+
+                if (subscriptionServiceGroup == null)
+                {
+                    throw new NotFoundException($"Subscription Service Group with Subscription Service Id {subscriptionServiceId} and Subscription Group Id {subscriptionGroupId} not found");
+                }
+
+                context.SubscriptionServiceGroups.Remove(subscriptionServiceGroup);
+
+                await context.SaveChangesAsync(cancellationToken);
+            }
+        }
+        #endregion
+
+        #region public async Task<List<SubscriptionServiceDTO>> GetSubscriptionServices(CancellationToken cancellationToken)        
+        /// <summary>
+        /// Gets the subscription services.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        public async Task<List<SubscriptionServiceDTO>> GetSubscriptionServices(CancellationToken cancellationToken)
+        {
+            List<SubscriptionServiceDTO> result =new List<SubscriptionServiceDTO>();
+
+            using (var context = this.ContextResolver())
+            {
+                var subscriptionServices = await context.SubscriptionServices.ToListAsync(cancellationToken);
+
+                foreach (var subscriptionService in subscriptionServices)
+                {
+                    result.Add(new SubscriptionServiceDTO
+                    {
+                        SubscriptionServiceId = subscriptionService.SubscriptionServiceId,
+                        Description = subscriptionService.Description
+                    });
+                }
+            }
+
+            return result;
+        }
+        #endregion
+
+        #region public async Task<SubscriptionServiceDTO> GetSubscriptionService(Guid subscriptionServiceId, CancellationToken cancellationToken)        
+        /// <summary>
+        /// Gets the subscription service.
+        /// </summary>
+        /// <param name="subscriptionServiceId">The subscription service identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        /// <exception cref="NotFoundException">Subscription service with Id {subscriptionServiceId}</exception>
+        public async Task<SubscriptionServiceDTO> GetSubscriptionService(Guid subscriptionServiceId, CancellationToken cancellationToken)
+        {
+            Guard.ThrowIfInvalidGuid(subscriptionServiceId, typeof(ArgumentNullException), "A subscription service Id must be provided");
+
+            SubscriptionServiceDTO result = null;
+
+            using (var context = this.ContextResolver())
+            {
+                var subscriptionService = await context.SubscriptionServices
+                    .Where(s => s.SubscriptionServiceId == subscriptionServiceId)
+                    .SingleOrDefaultAsync(cancellationToken);
+
+                if (subscriptionService == null)
+                {
+                    throw new NotFoundException($"Subscription service with Id {subscriptionServiceId} not found");
+                }
+
+                result = new SubscriptionServiceDTO
+                {
+                    SubscriptionServiceId = subscriptionService.SubscriptionServiceId,
+                    Description = subscriptionService.Description
+                };
+            }
+
+            return result;
         }
         #endregion
 

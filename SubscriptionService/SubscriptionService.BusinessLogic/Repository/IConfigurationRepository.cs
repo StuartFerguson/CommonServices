@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Shared.EventStore;
 using SubscriptionService.DataTransferObjects;
-//using SubscriptionStreamDTO = SubscriptionService.DataTransferObjects.SubscriptionStream;
+using SubscriptionServiceDTO = SubscriptionService.DataTransferObjects.SubscriptionService;
 
 namespace SubscriptionService.BusinessLogic.Repository
 {
@@ -13,9 +13,10 @@ namespace SubscriptionService.BusinessLogic.Repository
         /// <summary>
         /// Gets the subscriptions.
         /// </summary>
+        /// <param name="subscriptionServiceId">The subscription service identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        Task<List<SubscriptionGroup>> GetSubscriptions(CancellationToken cancellationToken);
+        Task<List<SubscriptionGroup>> GetSubscriptions(Guid subscriptionServiceId, CancellationToken cancellationToken);
 
         /// <summary>
         /// Resets the subscription stream position.
@@ -116,5 +117,47 @@ namespace SubscriptionService.BusinessLogic.Repository
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
         Task RemoveSubscriptionGroup(Guid subscriptionGroupId, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Creates the subscription service.
+        /// </summary>
+        /// <param name="subscriptionServiceId">The subscription service identifier.</param>
+        /// <param name="description">The description.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        Task<Guid> CreateSubscriptionService(Guid subscriptionServiceId, String description, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Adds the subscription group to subscription service.
+        /// </summary>
+        /// <param name="subscriptionServiceId">The subscription service identifier.</param>
+        /// <param name="subscriptionGroupId">The subscription group identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        Task<Guid> AddSubscriptionGroupToSubscriptionService(Guid subscriptionServiceId, Guid subscriptionGroupId, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Removes the subscription group from subscription service.
+        /// </summary>
+        /// <param name="subscriptionServiceId">The subscription service identifier.</param>
+        /// <param name="subscriptionGroupId">The subscription group identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        Task RemoveSubscriptionGroupFromSubscriptionService(Guid subscriptionServiceId, Guid subscriptionGroupId,CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Gets the subscription services.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        Task<List<SubscriptionServiceDTO>> GetSubscriptionServices(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Gets the subscription service.
+        /// </summary>
+        /// <param name="subscriptionServiceId">The subscription service identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        Task<SubscriptionServiceDTO> GetSubscriptionService(Guid subscriptionServiceId, CancellationToken cancellationToken);
     }
 }
