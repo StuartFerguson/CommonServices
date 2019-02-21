@@ -11,8 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="EventStore.ClientAPI.NetCore" Version="4.1.0.23" />
-    <PackageReference Include="Shared" Version="1.0.6.13" />
+    <PackageReference Include="Shared" Version="1.0.11.18" />
   </ItemGroup>
 
   <ItemGroup>

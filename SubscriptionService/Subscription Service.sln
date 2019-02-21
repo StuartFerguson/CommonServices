@@ -20,8 +20,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubscriptionService.Configu
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BaseDockerImage", "BaseDockerImage", "{37CA97B4-72C1-4876-85E3-58323B91EE4A}"
 	ProjectSection(SolutionItems) = preProject
+		DBSetup.sql = DBSetup.sql
 		SubcriptionService.Docker.BaseImage\Dockerfile = SubcriptionService.Docker.BaseImage\Dockerfile
-		SubcriptionService.Docker.BaseImage\InitialDatabase.sql = SubcriptionService.Docker.BaseImage\InitialDatabase.sql
 	EndProjectSection
 EndProject
 Global

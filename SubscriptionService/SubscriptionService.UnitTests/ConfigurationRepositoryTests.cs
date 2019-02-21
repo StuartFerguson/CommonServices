@@ -18,6 +18,8 @@ using SubscriptionServiceModel = SubscriptionService.Database.Models.Subscriptio
 
 namespace SubscriptionService.UnitTests
 {
+    using Shared.Exceptions;
+
     public class ConfigurationRepositoryTests
     {
         private SubscriptionServiceConfigurationContext GetContext(String databaseName)

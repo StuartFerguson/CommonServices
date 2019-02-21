@@ -16,6 +16,8 @@ using SubscriptionServiceDTO = SubscriptionService.DataTransferObjects.Subscript
 
 namespace SubscriptionService.BusinessLogic.Repository
 {
+    using Shared.Exceptions;
+
     public class ConfigurationRepository : IConfigurationRepository
     {
         #region Fields
