@@ -16,6 +16,8 @@ using EndPoint = SubscriptionService.DataTransferObjects.EndPoint;
 
 namespace SubscriptionService.BusinessLogic.Subscription
 {
+    using Shared.Exceptions;
+
     public class Subscription : ISubscription
     {
         #region Public Properties
