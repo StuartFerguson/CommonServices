@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.136
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.156
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessagingService.Service", "MessagingService.Service\MessagingService.Service.csproj", "{1447AA91-79F9-4A3C-8395-F42E2180DCFC}"
 EndProject
@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BF2482A1-13C
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{9AEE6ADE-DD45-4605-A933-E06CF0BA4203}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagingService.IntegrationTests.Specflow", "MessagingService.IntegrationTests.Specflow\MessagingService.IntegrationTests.Specflow.csproj", "{2E3DF5C2-8A38-4A03-86D7-8D463C917E47}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagingService.IntegrationTests.Specflow", "MessagingService.IntegrationTests.Specflow\MessagingService.IntegrationTests.Specflow.csproj", "{FA927C98-99B3-4AAF-9109-D3C3216C43A9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,10 +33,10 @@ Global
 		{A1C76AA1-C3E4-4310-BCC5-3CB809360A64}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1C76AA1-C3E4-4310-BCC5-3CB809360A64}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1C76AA1-C3E4-4310-BCC5-3CB809360A64}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2E3DF5C2-8A38-4A03-86D7-8D463C917E47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2E3DF5C2-8A38-4A03-86D7-8D463C917E47}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2E3DF5C2-8A38-4A03-86D7-8D463C917E47}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2E3DF5C2-8A38-4A03-86D7-8D463C917E47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA927C98-99B3-4AAF-9109-D3C3216C43A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA927C98-99B3-4AAF-9109-D3C3216C43A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA927C98-99B3-4AAF-9109-D3C3216C43A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA927C98-99B3-4AAF-9109-D3C3216C43A9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -45,7 +45,7 @@ Global
 		{1447AA91-79F9-4A3C-8395-F42E2180DCFC} = {BF2482A1-13C0-4305-B732-AB62EBD9429B}
 		{80E79D19-A715-407A-A5F4-0BA7B7914A3B} = {BF2482A1-13C0-4305-B732-AB62EBD9429B}
 		{A1C76AA1-C3E4-4310-BCC5-3CB809360A64} = {9AEE6ADE-DD45-4605-A933-E06CF0BA4203}
-		{2E3DF5C2-8A38-4A03-86D7-8D463C917E47} = {9AEE6ADE-DD45-4605-A933-E06CF0BA4203}
+		{FA927C98-99B3-4AAF-9109-D3C3216C43A9} = {9AEE6ADE-DD45-4605-A933-E06CF0BA4203}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1929C0FE-8CEB-4D0E-BD22-9E5E16E2B49F}
