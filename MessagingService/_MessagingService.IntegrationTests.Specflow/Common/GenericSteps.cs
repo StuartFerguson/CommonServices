@@ -32,11 +32,16 @@ namespace MessagingService.IntegrationTests.Specflow.Common
             this.TestNetwork = new Builder().UseNetwork($"testnetwork{Guid.NewGuid()}").Build();
 
             // Messaging Service Container
-            this.MessagingServiceContainer = new Builder().UseContainer().WithName(messagingServiceContainerName)
-                                                          .WithEnvironment("SeedingType=IntegrationTest", "ASPNETCORE_ENVIRONMENT=IntegrationTest")
-                                                          .WithEnvironment("SeedingType=IntegrationTest").UseImage("messagingserviceservice").ExposePort(5002)
-                                                          .UseNetwork(this.TestNetwork).Mount($"D:\\temp\\docker\\{testFolder}", "/home", MountType.ReadWrite).Build()
-                                                          .Start()
+            this.MessagingServiceContainer = new Builder()
+                .UseContainer()
+                .WithName(messagingServiceContainerName)
+                .WithEnvironment("SeedingType=IntegrationTest", "ASPNETCORE_ENVIRONMENT=IntegrationTest")
+                .UseImage("messagingserviceservice")
+                .ExposePort(5002)
+                .UseNetwork(this.TestNetwork)
+                .Mount($"D:\\temp\\docker\\{testFolder}", "/home", MountType.ReadWrite)                
+                .Build()
+                .Start()
                 .WaitForPort("5002/tcp", 30000);
             
             // Cache the ports
