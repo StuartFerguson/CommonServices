@@ -19,7 +19,7 @@ namespace SubscriptionService.BusinessLogic.EventStore
         /// <summary>
         /// The configuration repository resolver
         /// </summary>
-        private readonly Func<IConfigurationRepository> ConfigurationRepositoryResolver;
+        private readonly Func<INewConfigurationRepository> ConfigurationRepositoryResolver;
 
         /// <summary>
         /// The event store settings
@@ -41,7 +41,7 @@ namespace SubscriptionService.BusinessLogic.EventStore
         /// <param name="eventStoreContextFunc">The event store context function.</param>
         /// <param name="configurationRepositoryResolver">The configuration repository resolver.</param>
         /// <param name="eventStoreSettings">The event store settings.</param>
-        public EventStoreManager(Func<String, IEventStoreContext> eventStoreContextFunc, Func<IConfigurationRepository> configurationRepositoryResolver,
+        public EventStoreManager(Func<String, IEventStoreContext> eventStoreContextFunc, Func<INewConfigurationRepository> configurationRepositoryResolver,
             IOptions<EventStoreSettings> eventStoreSettings)
         {
             this.EventStoreContextFunc = eventStoreContextFunc;

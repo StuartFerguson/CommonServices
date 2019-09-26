@@ -39,17 +39,24 @@ namespace SubscriptionService.BusinessLogic.Subscription
         Int32? StartPosition { get; }
 
         /// <summary>
+        /// Gets the endpoint URI.
+        /// </summary>
+        /// <value>
+        /// The endpoint URI.
+        /// </value>
+        String EndpointUri { get; }
+
+        /// <summary>
         /// Starts the subscription.
         /// </summary>
         /// <param name="subscriptionId">The subscription identifier.</param>
         /// <param name="streamName">Name of the stream.</param>
         /// <param name="groupName">Name of the group.</param>
-        /// <param name="endPointId">The end point identifier.</param>
         /// <param name="startPosition">The start position.</param>
         /// <param name="bufferSize">Size of the buffer.</param>
         /// <param name="subscriptionType">Type of the subscription.</param>
         /// <returns></returns>
-        Task StartSubscription(Guid subscriptionId, String streamName, String groupName, Int32? startPosition = null,Guid? endPointId = null, Int32 bufferSize = 10, SubscriptionType subscriptionType = SubscriptionType.Persistent);
+        Task StartSubscription(Guid subscriptionId, String streamName, String groupName, Int32? startPosition = null, String endPointUri = null,Int32 bufferSize = 10, SubscriptionType subscriptionType = SubscriptionType.Persistent);
 
         /// <summary>
         /// Stops the subscription.

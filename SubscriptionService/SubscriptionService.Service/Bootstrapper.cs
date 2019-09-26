@@ -55,14 +55,14 @@ namespace SubscriptionService.Service
         {
             // Register services
             services.AddSingleton<ISubscriptionService, BusinessLogic.SubscriptionService>();
-            services.AddSingleton<ISubscriptionCache<SubscriptionGroup>, SubscriptionCache>();
+            services.AddSingleton<ISubscriptionCache<SubscriptionConfiguration>, SubscriptionCache>();
             services.AddTransient<ISubscription, Subscription>();
-            services.AddSingleton<IConfigurationRepository, ConfigurationRepository>();
+            services.AddSingleton<INewConfigurationRepository, NewConfigurationRepository>();
             services.AddSingleton<IEventStoreManager, EventStoreManager>();
             services.Configure<ServiceSettings>(Program.Configuration.GetSection("ServiceSettings"));
             services.Configure<EventStoreSettings>(Program.Configuration.GetSection("EventStoreSettings"));
 
-            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            String environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
             if (environment == "IntegrationTest")
             {
@@ -72,7 +72,7 @@ namespace SubscriptionService.Service
             }
             else
             {
-                var connectionString =
+                String connectionString =
                     Program.Configuration.GetConnectionString(nameof(SubscriptionServiceConfigurationContext));
 
                 String migrationsAssembly = typeof(SubscriptionServiceConfigurationContext).GetTypeInfo().Assembly
@@ -93,9 +93,9 @@ namespace SubscriptionService.Service
         /// <param name="configurationExpression">The configuration expression.</param>
         private static void ConfigureCommonContainer(ConfigurationExpression configurationExpression)
         {
-            var connString = Program.Configuration.GetValue<String>("EventStoreSettings:ConnectionString");
-            var connectionName = Program.Configuration.GetValue<String>("EventStoreSettings:ConnectionName");
-            var httpPort = Program.Configuration.GetValue<Int32>("EventStoreSettings:HttpPort");
+            String connString = Program.Configuration.GetValue<String>("EventStoreSettings:ConnectionString");
+            String connectionName = Program.Configuration.GetValue<String>("EventStoreSettings:ConnectionName");
+            Int32 httpPort = Program.Configuration.GetValue<Int32>("EventStoreSettings:HttpPort");
 
             EventStoreConnectionSettings settings = EventStoreConnectionSettings.Create(connString, connectionName, httpPort);
 
@@ -130,9 +130,9 @@ namespace SubscriptionService.Service
         {
             using (IServiceScope scope = serviceProvider.GetService<IServiceScopeFactory>().CreateScope())
             {
-                SubscriptionServiceConfigurationContext SubscriptionServiceConfigurationContext = scope.ServiceProvider.GetRequiredService<SubscriptionServiceConfigurationContext>();
+                SubscriptionServiceConfigurationContext subscriptionServiceConfigurationContext = scope.ServiceProvider.GetRequiredService<SubscriptionServiceConfigurationContext>();
 
-                DatabaseSeeding.InitialiseDatabase(SubscriptionServiceConfigurationContext);
+                DatabaseSeeding.InitialiseDatabase(subscriptionServiceConfigurationContext);
             }
         }
         #endregion

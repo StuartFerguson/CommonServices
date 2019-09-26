@@ -13,11 +13,11 @@ namespace SubscriptionService.BusinessLogic
         public Int32 CacheTimeout { get; set; }
 
         /// <summary>
-        /// Gets or sets the subscription service identifier.
+        /// Gets or sets the event store server identifier.
         /// </summary>
         /// <value>
-        /// The subscription service identifier.
+        /// The event store server identifier.
         /// </value>
-        public Guid SubscriptionServiceId { get; set; }
+        public Guid EventStoreServerId { get; set; }
     }
 }

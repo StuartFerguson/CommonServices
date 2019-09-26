@@ -10,14 +10,14 @@ using SubscriptionService.DataTransferObjects;
 
 namespace SubscriptionService.BusinessLogic.SubscriptionCache
 {
-    public class SubscriptionCache : ISubscriptionCache<SubscriptionGroup>
+    public class SubscriptionCache : ISubscriptionCache<SubscriptionConfiguration>
     {
         #region Fields
 
         /// <summary>
         /// The configuration repository
         /// </summary>
-        private readonly IConfigurationRepository ConfigurationRepository;
+        private readonly INewConfigurationRepository ConfigurationRepository;
 
         /// <summary>
         /// The service settings
@@ -35,7 +35,7 @@ namespace SubscriptionService.BusinessLogic.SubscriptionCache
         /// <summary>
         /// The subscription groups
         /// </summary>
-        private Dictionary<Guid, SubscriptionGroup> SubscriptionGroups;
+        private Dictionary<Guid, SubscriptionConfiguration> SubscriptionConfigurations;
 
         #endregion
 
@@ -45,11 +45,11 @@ namespace SubscriptionService.BusinessLogic.SubscriptionCache
         /// </summary>
         /// <param name="configurationRepository">The configuration repository.</param>
         /// <param name="serviceSettings">The service settings.</param>
-        public SubscriptionCache(IConfigurationRepository configurationRepository, IOptions<ServiceSettings> serviceSettings)
+        public SubscriptionCache(INewConfigurationRepository configurationRepository, IOptions<ServiceSettings> serviceSettings)
         {
             this.ConfigurationRepository = configurationRepository;
             this.ServiceSettings = serviceSettings;
-            this.SubscriptionGroups = new Dictionary<Guid, SubscriptionGroup>();
+            this.SubscriptionConfigurations = new Dictionary<Guid, SubscriptionConfiguration>();
         }
         #endregion
 
@@ -58,17 +58,17 @@ namespace SubscriptionService.BusinessLogic.SubscriptionCache
         /// <summary>
         /// Occurs when [item added].
         /// </summary>
-        public event EventHandler<SubscriptionGroup> ItemAdded;
+        public event EventHandler<SubscriptionConfiguration> ItemAdded;
 
         /// <summary>
         /// Occurs when [item removed].
         /// </summary>
-        public event EventHandler<SubscriptionGroup> ItemRemoved;
+        public event EventHandler<SubscriptionConfiguration> ItemRemoved;
 
         /// <summary>
         /// Occurs when [item updated].
         /// </summary>
-        public event EventHandler<SubscriptionGroup> ItemUpdated;
+        public event EventHandler<SubscriptionConfiguration> ItemUpdated;
 
         #endregion
 
@@ -105,32 +105,32 @@ namespace SubscriptionService.BusinessLogic.SubscriptionCache
         /// <returns></returns>
         private async Task ProcessSubscriptions()
         {
-            // Get the subscription service id from the config
-            var subscriptionServiceId = this.ServiceSettings.Value.SubscriptionServiceId;
+            // Get the event store server id from the config
+            Guid eventStoreServerId = this.ServiceSettings.Value.EventStoreServerId;
 
             // Check if we have any groups currently
-            if (!this.SubscriptionGroups.Any())
+            if (!this.SubscriptionConfigurations.Any())
             {
                 Logger.LogInformation("First Initialisation of Cache");
 
                 // Currently no groups loaded into memory
 
                 // Read the groups from configuration
-                var subscriptionGroups = await this.ConfigurationRepository.GetSubscriptions(subscriptionServiceId, CancellationToken.None);
+                List<SubscriptionConfiguration> subscriptionConfigurations = await this.ConfigurationRepository.GetSubscriptionConfigurations(eventStoreServerId, CancellationToken.None);
                 //subscriptionGroups = subscriptionGroups.Take(1).ToList();
-                foreach (var subscriptionGroup in subscriptionGroups)
+                foreach (SubscriptionConfiguration subscriptionConfiguration in subscriptionConfigurations)
                 {
                     // Add to the list of groups
-                    this.SubscriptionGroups.Add(subscriptionGroup.SubscriptionGroupId, subscriptionGroup);
+                    this.SubscriptionConfigurations.Add(subscriptionConfiguration.SubscriptionId, subscriptionConfiguration);
 
                     // Raise the added event 
                     if (this.ItemAdded != null)
                     {
-                        Logger.LogInformation($"About to add subscription group {subscriptionGroup.GroupName}");
+                        Logger.LogInformation($"About to add subscription group {subscriptionConfiguration.GroupName}");
 
-                        this.ItemAdded(this, subscriptionGroup);
+                        this.ItemAdded(this, subscriptionConfiguration);
 
-                        Logger.LogInformation($"Subscription group {subscriptionGroup.GroupName} added");
+                        Logger.LogInformation($"Subscription group {subscriptionConfiguration.GroupName} added");
                     }
                     else
                     {
@@ -141,19 +141,19 @@ namespace SubscriptionService.BusinessLogic.SubscriptionCache
             else
             {
                 // Read the groups from configuration to determine any new/updates/deletes
-                var subscriptionGroups = await this.ConfigurationRepository.GetSubscriptions(subscriptionServiceId, CancellationToken.None);
+                List<SubscriptionConfiguration> subscriptionConfigurations = await this.ConfigurationRepository.GetSubscriptionConfigurations(eventStoreServerId, CancellationToken.None);
 
-                var cachedConfiguration = this.SubscriptionGroups.Select(x => x.Value).ToList();
+                List<SubscriptionConfiguration> cachedConfiguration = this.SubscriptionConfigurations.Select(x => x.Value).ToList();
 
                 // Get the new config items
-                var newConfigEntries = subscriptionGroups.Except(cachedConfiguration, new GenericCompare<SubscriptionGroup>(x => x.SubscriptionGroupId));
+                IEnumerable<SubscriptionConfiguration> newConfigEntries = subscriptionConfigurations.Except(cachedConfiguration, new GenericCompare<SubscriptionConfiguration>(x => x.SubscriptionId));
 
-                foreach (var item in newConfigEntries)
+                foreach (SubscriptionConfiguration item in newConfigEntries)
                 {
                     if (this.ItemAdded != null)
                     {
                         // Add to the list of groups
-                        this.SubscriptionGroups.Add(item.SubscriptionGroupId, item);
+                        this.SubscriptionConfigurations.Add(item.SubscriptionId, item);
 
                         Logger.LogInformation($"About to add subscription group {item.GroupName}");
 
@@ -168,15 +168,15 @@ namespace SubscriptionService.BusinessLogic.SubscriptionCache
                 }
 
                 // Handle the deleted items
-                var deletedConfig = cachedConfiguration.Except(subscriptionGroups, new GenericCompare<SubscriptionGroup>(x => x.SubscriptionGroupId));
+                IEnumerable<SubscriptionConfiguration> deletedConfig = cachedConfiguration.Except(subscriptionConfigurations, new GenericCompare<SubscriptionConfiguration>(x => x.SubscriptionId));
 
-                foreach (var item in deletedConfig)
+                foreach (SubscriptionConfiguration item in deletedConfig)
                 {
                     if (this.ItemRemoved != null)
                     {
                         Logger.LogInformation($"About to remove subscription group {item.GroupName}");
 
-                        this.SubscriptionGroups.Remove(item.SubscriptionGroupId);
+                        this.SubscriptionConfigurations.Remove(item.SubscriptionId);
 
                         this.ItemRemoved(this, item);
 
@@ -189,9 +189,9 @@ namespace SubscriptionService.BusinessLogic.SubscriptionCache
                 }
 
                 // Get the configs that match
-                var matches = subscriptionGroups.Intersect(cachedConfiguration, new GenericCompare<SubscriptionGroup>(x => x.SubscriptionGroupId));
+                IEnumerable<SubscriptionConfiguration> matches = subscriptionConfigurations.Intersect(cachedConfiguration, new GenericCompare<SubscriptionConfiguration>(x => x.SubscriptionId));
 
-                foreach (var item in matches)
+                foreach (SubscriptionConfiguration item in matches)
                 {
                     // If position is set to -1 we require to reset the subscription
                     if (item.StreamPositionToRestartFrom.HasValue)
