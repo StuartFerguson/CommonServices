@@ -4,6 +4,8 @@ using SubscriptionService.Database.Models;
 
 namespace SubscriptionService.Database
 {
+    using Remotion.Linq.Clauses.ExpressionVisitors;
+
     public class SubscriptionServiceConfigurationContext : DbContext
     {
         private readonly String ConnectionString;
@@ -113,6 +115,30 @@ namespace SubscriptionService.Database
         /// The subscription service groups.
         /// </value>
         public virtual DbSet<SubscriptionServiceGroup> SubscriptionServiceGroups { get; set; }
+
+        /// <summary>
+        /// Gets or sets the subscriptions.
+        /// </summary>
+        /// <value>
+        /// The subscriptions.
+        /// </value>
+        public virtual DbSet<SubscriptionConfiguration> SubscriptionConfigurations { get; set; }
+
+        /// <summary>
+        /// Gets or sets the catchup subscription configurations.
+        /// </summary>
+        /// <value>
+        /// The catchup subscription configurations.
+        /// </value>
+        public virtual DbSet<CatchupSubscriptionConfiguration> CatchupSubscriptionConfigurations { get; set; }
+
+        /// <summary>
+        /// Gets or sets the event store servers.
+        /// </summary>
+        /// <value>
+        /// The event store servers.
+        /// </value>
+        public virtual DbSet<EventStoreServer>  EventStoreServers { get; set; }
 
         #endregion
     }

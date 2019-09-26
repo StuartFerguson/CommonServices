@@ -12,6 +12,8 @@ using SubscriptionService.DataTransferObjects;
 
 namespace SubscriptionService.BusinessLogic
 {
+    using Microsoft.Extensions.Options;
+
     public class SubscriptionService : ISubscriptionService
     {
         #region Fields
@@ -19,7 +21,7 @@ namespace SubscriptionService.BusinessLogic
         /// <summary>
         /// The subscription cache
         /// </summary>
-        private readonly ISubscriptionCache<SubscriptionGroup> SubscriptionCache;
+        private readonly ISubscriptionCache<SubscriptionConfiguration> SubscriptionCache;
 
         /// <summary>
         /// The subscription resolver
@@ -29,12 +31,14 @@ namespace SubscriptionService.BusinessLogic
         /// <summary>
         /// The repository resolver
         /// </summary>
-        private readonly Func<IConfigurationRepository> RepositoryResolver;
+        private readonly Func<INewConfigurationRepository> RepositoryResolver;
+
+        private readonly IOptions<ServiceSettings> ServiceSettings;
 
         /// <summary>
         /// The subscription list
         /// </summary>
-        private List<ISubscription> SubscriptionList = new List<ISubscription>();
+        private readonly List<ISubscription> SubscriptionList = new List<ISubscription>();
 
         /// <summary>
         /// The timer
@@ -51,12 +55,13 @@ namespace SubscriptionService.BusinessLogic
         /// <param name="subscriptionCache">The subscription cache.</param>
         /// <param name="subscriptionResolver">The subscription resolver.</param>
         /// <param name="repositoryResolver">The repository resolver.</param>
-        public SubscriptionService(ISubscriptionCache<SubscriptionGroup> subscriptionCache, Func<ISubscription> subscriptionResolver,
-            Func<IConfigurationRepository> repositoryResolver)
+        public SubscriptionService(ISubscriptionCache<SubscriptionConfiguration> subscriptionCache, Func<ISubscription> subscriptionResolver,
+            Func<INewConfigurationRepository> repositoryResolver, IOptions<ServiceSettings> serviceSettings)
         {
             this.SubscriptionCache = subscriptionCache;
             this.SubscriptionResolver = subscriptionResolver;
             this.RepositoryResolver = repositoryResolver;
+            this.ServiceSettings = serviceSettings;
         }
 
         #endregion
@@ -113,7 +118,7 @@ namespace SubscriptionService.BusinessLogic
         /// <param name="sender">The sender.</param>
         /// <param name="e">The e.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        private async void SubscriptionCache_ItemUpdated(Object sender, SubscriptionGroup e)
+        private async void SubscriptionCache_ItemUpdated(Object sender, SubscriptionConfiguration e)
         {
             await ProcessCacheEvent(CacheEventType.Updated, e);
         }
@@ -126,7 +131,7 @@ namespace SubscriptionService.BusinessLogic
         /// <param name="sender">The sender.</param>
         /// <param name="e">The e.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        private async void SubscriptionCache_ItemRemoved(Object sender, SubscriptionGroup e)
+        private async void SubscriptionCache_ItemRemoved(Object sender, SubscriptionConfiguration e)
         {
             await ProcessCacheEvent(CacheEventType.Removed, e);
         }
@@ -139,7 +144,7 @@ namespace SubscriptionService.BusinessLogic
         /// <param name="sender">The sender.</param>
         /// <param name="e">The e.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        private async void SubscriptionCache_ItemAdded(Object sender, SubscriptionGroup e)
+        private async void SubscriptionCache_ItemAdded(Object sender, SubscriptionConfiguration e)
         {
             await ProcessCacheEvent(CacheEventType.Added, e);
         }
@@ -150,19 +155,19 @@ namespace SubscriptionService.BusinessLogic
         /// Processes the cache event.
         /// </summary>
         /// <param name="cacheEventType">Type of the cache event.</param>
-        /// <param name="subscriptionGroup">The subscription group.</param>
+        /// <param name="subscriptionConfiguration">The subscription group.</param>
         /// <returns></returns>
-        private async Task ProcessCacheEvent(CacheEventType cacheEventType, SubscriptionGroup subscriptionGroup)
+        private async Task ProcessCacheEvent(CacheEventType cacheEventType, SubscriptionConfiguration subscriptionConfiguration)
         {
             if (cacheEventType == CacheEventType.Added)
             {
                 // Create a new subscription
-                var subscription = this.SubscriptionResolver();
+                ISubscription subscription = this.SubscriptionResolver();
 
                 // Start this subscription
-                await subscription.StartSubscription(subscriptionGroup.SubscriptionGroupId,
-                    subscriptionGroup.StreamName,
-                    subscriptionGroup.GroupName);
+                await subscription.StartSubscription(subscriptionConfiguration.SubscriptionId,
+                    subscriptionConfiguration.StreamName,
+                    subscriptionConfiguration.GroupName);
 
                 // Add this to the cached subscription list
                 this.SubscriptionList.Add(subscription);
@@ -170,7 +175,7 @@ namespace SubscriptionService.BusinessLogic
             else if (cacheEventType == CacheEventType.Removed)
             {
                 // Find the item that has been removed based on the event argument
-                var subscription = this.SubscriptionList.Where(x => x.SubscriptionId == subscriptionGroup.SubscriptionGroupId).Single();
+                ISubscription subscription = this.SubscriptionList.Single(x => x.SubscriptionId == subscriptionConfiguration.SubscriptionId);
 
                 // Stop the subscription                
                 await subscription.StopSubscription();
@@ -181,7 +186,7 @@ namespace SubscriptionService.BusinessLogic
             else if (cacheEventType == CacheEventType.Updated)
             {
                 // Find the item that has been updated based on the event argument
-                var subscription = this.SubscriptionList.Where(x => x.SubscriptionId == subscriptionGroup.SubscriptionGroupId).SingleOrDefault();
+                ISubscription subscription = this.SubscriptionList.SingleOrDefault(x => x.SubscriptionId == subscriptionConfiguration.SubscriptionId);
 
                 if (subscription != null)
                 {
@@ -190,14 +195,14 @@ namespace SubscriptionService.BusinessLogic
 
                     // Re-Create the subscription
                     // Start this subscription 
-                    await subscription.StartSubscription(subscriptionGroup.SubscriptionGroupId,
-                        subscriptionGroup.StreamName,
-                        subscriptionGroup.GroupName,
-                        subscriptionGroup.StreamPositionToRestartFrom);
+                    await subscription.StartSubscription(subscriptionConfiguration.SubscriptionId,
+                        subscriptionConfiguration.StreamName,
+                        subscriptionConfiguration.GroupName,
+                        subscriptionConfiguration.StreamPositionToRestartFrom);
 
-                    // Update the repostitory position
-                    var configRepository = this.RepositoryResolver();
-                    await configRepository.ResetSubscriptionStreamPosition(subscriptionGroup.SubscriptionGroupId,
+                    // Update the repository position
+                    INewConfigurationRepository configRepository = this.RepositoryResolver();
+                    await configRepository.ResetSubscriptionStreamPosition(subscriptionConfiguration.SubscriptionId,
                         CancellationToken.None);
                 }
             }
@@ -221,22 +226,26 @@ namespace SubscriptionService.BusinessLogic
                 Logger.LogInformation("Checking for CatchUp subscriptions");
 
                 // Get a handle to the repository
-                var configRepository = this.RepositoryResolver();
+                INewConfigurationRepository configRepository = this.RepositoryResolver();
 
-                // Get the scubscription 
-                CatchUpSubscription catchUpSubscriptionGroup = await configRepository.GetNextCatchUpSubscription(CancellationToken.None);
+                // Get the event store server id from the config
+                Guid eventStoreServerId = this.ServiceSettings.Value.EventStoreServerId;
+
+                // Get the subscription 
+                CatchupSubscriptionConfiguration catchUpSubscriptionGroup = await configRepository.GetNextCatchupSubscriptionConfiguration(eventStoreServerId, CancellationToken.None);
 
                 if (catchUpSubscriptionGroup != null)
                 {
                     Logger.LogInformation($"About connect to stream for catch up {catchUpSubscriptionGroup.StreamName}");
-                    Logger.LogInformation($"CatchUp retrieved with Id {catchUpSubscriptionGroup.CatchUpSubscriptionId}");
+                    Logger.LogInformation($"CatchUp retrieved with Id {catchUpSubscriptionGroup.SubscriptionId}");
 
                     // Create a new subscription
-                    var subscription = this.SubscriptionResolver();
+                    ISubscription subscription = this.SubscriptionResolver();
 
                     // Start this subscription
-                    await subscription.StartSubscription(catchUpSubscriptionGroup.CatchUpSubscriptionId,
-                        catchUpSubscriptionGroup.StreamName, "Test", catchUpSubscriptionGroup.Position, catchUpSubscriptionGroup.EndpointId, subscriptionType: SubscriptionType.CatchUp);
+                    await subscription.StartSubscription(catchUpSubscriptionGroup.SubscriptionId,
+                        catchUpSubscriptionGroup.StreamName, catchUpSubscriptionGroup.Name, catchUpSubscriptionGroup.Position, 
+                        catchUpSubscriptionGroup.EndPointUri, subscriptionType: SubscriptionType.CatchUp);
                 }
             }
             catch(Exception ex)

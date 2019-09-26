@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SubscriptionService.Database;
 
 namespace SubscriptionService.Database.Migrations
 {
     [DbContext(typeof(SubscriptionServiceConfigurationContext))]
-    partial class SubscriptionServiceConfigurationContextModelSnapshot : ModelSnapshot
+    [Migration("20190926192345_NewConfigFormat")]
+    partial class NewConfigFormat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,30 +39,6 @@ namespace SubscriptionService.Database.Migrations
                     b.HasIndex("EndPointId");
 
                     b.ToTable("CatchUpSubscriptions");
-                });
-
-            modelBuilder.Entity("SubscriptionService.Database.Models.CatchupSubscriptionConfiguration", b =>
-                {
-                    b.Property<Guid>("SubscriptionId")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<DateTime>("CreateDateTime");
-
-                    b.Property<string>("EndPointUri");
-
-                    b.Property<Guid>("EventStoreServerId");
-
-                    b.Property<string>("Name");
-
-                    b.Property<int>("Position");
-
-                    b.Property<string>("StreamName");
-
-                    b.HasKey("SubscriptionId");
-
-                    b.HasIndex("EventStoreServerId");
-
-                    b.ToTable("CatchupSubscriptionConfigurations");
                 });
 
             modelBuilder.Entity("SubscriptionService.Database.Models.EndPoint", b =>
@@ -104,7 +82,7 @@ namespace SubscriptionService.Database.Migrations
 
                     b.Property<string>("StreamName");
 
-                    b.Property<int?>("StreamPosition");
+                    b.Property<int>("StreamPosition");
 
                     b.HasKey("SubscriptionId");
 
@@ -186,14 +164,6 @@ namespace SubscriptionService.Database.Migrations
                     b.HasOne("SubscriptionService.Database.Models.EndPoint", "EndPoint")
                         .WithMany()
                         .HasForeignKey("EndPointId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("SubscriptionService.Database.Models.CatchupSubscriptionConfiguration", b =>
-                {
-                    b.HasOne("SubscriptionService.Database.Models.EventStoreServer", "EventStoreServer")
-                        .WithMany()
-                        .HasForeignKey("EventStoreServerId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 

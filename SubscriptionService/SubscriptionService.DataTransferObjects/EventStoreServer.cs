@@ -1,16 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace SubscriptionService.DataTransferObjects
 {
-    public class EndPoint
+    public class EventStoreServer
     {
         /// <summary>
-        /// Gets or sets the end point identifier.
+        /// Gets or sets the event store server identifier.
         /// </summary>
         /// <value>
-        /// The end point identifier.
+        /// The event store server identifier.
         /// </value>
-        public Guid EndPointId { get; set; }
+        public Guid EventStoreServerId { get; set; }
 
         /// <summary>
         /// Gets or sets the name.
@@ -21,11 +23,11 @@ namespace SubscriptionService.DataTransferObjects
         public String Name { get; set; }
 
         /// <summary>
-        /// Gets or sets the URL.
+        /// Gets or sets the connection string.
         /// </summary>
         /// <value>
-        /// The URL.
+        /// The connection string.
         /// </value>
-        public String Url { get; set; }
+        public String ConnectionString { get; set; }
     }
 }

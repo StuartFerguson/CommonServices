@@ -9,6 +9,7 @@ using SubscriptionService.BusinessLogic.Repository;
 
 namespace SubscriptionService.Configuration.Service.Controllers
 {
+    /*
     [Route("api/[controller]")]
     public class PersistentSubscriptionController : Controller
     {
@@ -263,6 +264,6 @@ namespace SubscriptionService.Configuration.Service.Controllers
 
         #endregion
     }
-
+*/
     
 }
