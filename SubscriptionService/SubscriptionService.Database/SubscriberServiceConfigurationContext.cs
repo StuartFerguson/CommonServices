@@ -59,7 +59,7 @@ namespace SubscriptionService.Database
         {
             if (!String.IsNullOrWhiteSpace(this.ConnectionString))
             {
-                optionsBuilder.UseMySql(this.ConnectionString);
+                optionsBuilder.UseSqlServer(this.ConnectionString);
             }
 
             base.OnConfiguring(optionsBuilder);

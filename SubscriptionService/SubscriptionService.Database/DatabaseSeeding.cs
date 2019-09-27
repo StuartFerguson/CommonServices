@@ -10,7 +10,7 @@ namespace SubscriptionService.Database
         /// <param name="context">The context.</param>
         public static void InitialiseDatabase(SubscriptionServiceConfigurationContext context)
         {
-            if (context.Database.IsMySql())
+            if (context.Database.IsSqlServer())
             {
                 context.Database.Migrate();
             }

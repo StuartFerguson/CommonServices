@@ -83,7 +83,7 @@ namespace SubscriptionService.BusinessLogic.Repository
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="SubscriptionService.BusinessLogic.Repository.INewConfigurationRepository" />
+    /// <seealso cref="INewConfigurationRepository" />
     public class NewConfigurationRepository : INewConfigurationRepository
     {
         /// <summary>

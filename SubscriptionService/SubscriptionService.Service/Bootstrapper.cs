@@ -79,7 +79,7 @@ namespace SubscriptionService.Service
                     .GetName().Name;
 
                 services.AddDbContext<SubscriptionServiceConfigurationContext>(builder =>
-                        builder.UseMySql(connectionString,
+                        builder.UseSqlServer(connectionString,
                             sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
                     .AddTransient<SubscriptionServiceConfigurationContext>();
             }
